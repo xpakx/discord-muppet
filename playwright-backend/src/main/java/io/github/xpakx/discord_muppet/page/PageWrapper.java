@@ -18,9 +18,9 @@ public class PageWrapper {
     private final Playwright playwright;
     Logger logger = LoggerFactory.getLogger(PageWrapper.class);
 
-    public PageWrapper() {
+    public PageWrapper(Playwright.CreateOptions options) {
         try  {
-            this.playwright = Playwright.create();
+            this.playwright = Playwright.create(options);
             logger.info("Starting browser");
             this.browser = playwright.chromium().launch();
             logger.info("Opening new tab");
@@ -63,7 +63,6 @@ public class PageWrapper {
     @PreDestroy
     public void preDestroy() {
         logger.info("Closing browser…");
-        browser.close();
         playwright.close();
     }
 }
