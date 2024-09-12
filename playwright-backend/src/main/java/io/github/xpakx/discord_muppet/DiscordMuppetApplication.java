@@ -27,6 +27,5 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		page.goToLogin();
 		System.out.println(page.title());
 		page.fillLoginForm(email, password);
-		page.makeScreenshot();
 	}
 }

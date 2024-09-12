@@ -3,6 +3,7 @@ package io.github.xpakx.discord_muppet.page;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class PageWrapper {
         page.navigate("https://discord.com/app");
     }
 
+    @DebugScreenshot()
     public void fillLoginForm(String email, String password) {
         logger.info(
                 "Filling login form with email: {} and password {}",
@@ -53,8 +55,12 @@ public class PageWrapper {
     }
 
     public void makeScreenshot() {
-        Path root  = Path.of("debug");
         String name = "screenshot_" + Instant.now().toString() + ".png";
+        makeScreenshot(name);
+    }
+
+    public void makeScreenshot(String name) {
+        Path root  = Path.of("debug");
         page.screenshot(
                 new Page.ScreenshotOptions().setPath(root.resolve(name))
         );
