@@ -1,16 +1,19 @@
 package io.github.xpakx.discord_muppet.page;
 
 import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 
 @Component
 public class PageWrapper {
@@ -19,11 +22,15 @@ public class PageWrapper {
     private final Playwright playwright;
     Logger logger = LoggerFactory.getLogger(PageWrapper.class);
 
-    public PageWrapper(Playwright.CreateOptions options) {
+    public PageWrapper(Playwright.CreateOptions options, @Value("${user.agent}") String userAgentValue) {
+        final String userAgent = "--user-agent=%s".formatted(userAgentValue);
         try  {
             this.playwright = Playwright.create(options);
             logger.info("Starting browser");
-            this.browser = playwright.chromium().launch();
+            this.browser = playwright.chromium().launch(
+                   new BrowserType.LaunchOptions()
+                           .setArgs(List.of(userAgent))
+            );
             logger.info("Opening new tab");
             this.page = browser.newPage();
         } catch (Exception e) {
@@ -51,7 +58,7 @@ public class PageWrapper {
     }
 
     public String title() {
-       return page.title();
+        return page.title();
     }
 
     public void makeScreenshot() {
