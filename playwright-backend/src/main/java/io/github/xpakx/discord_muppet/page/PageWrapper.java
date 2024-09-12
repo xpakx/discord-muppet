@@ -1,9 +1,6 @@
 package io.github.xpakx.discord_muppet.page;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.*;
 import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -12,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 
@@ -19,6 +17,7 @@ import java.util.List;
 public class PageWrapper {
     private final Page page;
     private final Browser browser;
+    private final BrowserContext context;
     private final Playwright playwright;
     Logger logger = LoggerFactory.getLogger(PageWrapper.class);
 
@@ -31,8 +30,10 @@ public class PageWrapper {
                    new BrowserType.LaunchOptions()
                            .setArgs(List.of(userAgent))
             );
+            this.context = browser.newContext();
+            context.addInitScript(Paths.get("scripts/preload.js"));
             logger.info("Opening new tab");
-            this.page = browser.newPage();
+            this.page = context.newPage();
         } catch (Exception e) {
             logger.error("Couldn't start browser!");
             throw new RuntimeException(e);
@@ -51,10 +52,16 @@ public class PageWrapper {
                 email,
                 "*".repeat(password.length())
         );
-        page.locator("input[name='email']")
-                .fill(email);
-        page.locator("input[name='password']")
-                .fill(password);
+        var emailInput = page.locator("input[name='email']");
+        emailInput.pressSequentially(email,  new Locator.PressSequentiallyOptions());
+        var passwordInput = page.locator("input[name='password']");
+        passwordInput.pressSequentially(password,  new Locator.PressSequentiallyOptions().setDelay(100));
+
+        var button = page.locator("button[type=\"submit\"]");
+        var box = button.boundingBox();
+        page.mouse().move(box.x + box.width/2, box.y + box.height/2);
+        button.hover();
+        button.click();
     }
 
     public String title() {
