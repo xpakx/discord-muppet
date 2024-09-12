@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class PageWrapper {
@@ -26,12 +27,14 @@ public class PageWrapper {
         try  {
             this.playwright = Playwright.create(options);
             logger.info("Starting browser");
-            this.browser = playwright.chromium().launch(
+            this.browser = playwright.firefox().launch(
                    new BrowserType.LaunchOptions()
                            .setArgs(List.of(userAgent))
+                           // .setHeadless(false)
             );
             this.context = browser.newContext();
             context.addInitScript(Paths.get("scripts/preload.js"));
+
             logger.info("Opening new tab");
             this.page = context.newPage();
         } catch (Exception e) {
