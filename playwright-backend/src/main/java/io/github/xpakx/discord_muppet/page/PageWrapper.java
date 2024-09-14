@@ -1,6 +1,8 @@
 package io.github.xpakx.discord_muppet.page;
 
 import com.microsoft.playwright.*;
+import io.github.xpakx.discord_muppet.model.Status;
+import io.github.xpakx.discord_muppet.model.User;
 import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -81,6 +83,38 @@ public class PageWrapper {
         page.screenshot(
                 new Page.ScreenshotOptions().setPath(root.resolve(name))
         );
+    }
+
+    public User getStatus() {
+        var statusWrapper = getLocatorWithoutWaiting("section[aria-label='User area']");
+        var userData = getLocatorWithoutWaiting(statusWrapper, "div[class^='nameTag']")
+                .innerText();
+        var statusSplit = userData.split("\n");
+        if (statusSplit.length < 3) {
+            throw new RuntimeException("Corrupted status");
+        }
+        var avatarWrapper = getLocatorWithoutWaiting(statusWrapper, "div[class^=avatarWrapper]");
+        var status = getLocatorWithoutWaiting(avatarWrapper, "div[role=img]")
+               .getAttribute("aria-label")
+               .split(", ")[1];
+        return new User(
+                statusSplit[0],
+                statusSplit[1],
+                statusSplit[2],
+                Status.toStatus(status)
+        );
+    }
+
+    private Locator getLocatorWithoutWaiting(Locator parent, String selector) {
+        var locator = parent.locator(selector);
+        locator.waitFor(new Locator.WaitForOptions().setTimeout(0));
+        return locator;
+    }
+
+    private Locator getLocatorWithoutWaiting(String selector) {
+        var locator = page.locator(selector);
+        locator.waitFor(new Locator.WaitForOptions().setTimeout(0));
+        return locator;
     }
 
     @PreDestroy
