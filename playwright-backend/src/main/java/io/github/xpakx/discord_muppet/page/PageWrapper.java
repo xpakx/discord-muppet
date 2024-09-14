@@ -1,6 +1,7 @@
 package io.github.xpakx.discord_muppet.page;
 
 import com.microsoft.playwright.*;
+import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.model.Status;
 import io.github.xpakx.discord_muppet.model.User;
 import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
@@ -82,6 +83,34 @@ public class PageWrapper {
         Path root  = Path.of("debug");
         page.screenshot(
                 new Page.ScreenshotOptions().setPath(root.resolve(name))
+        );
+    }
+
+    public List<Friend> getContacts() {
+        // var friends = page.locator("nav[aria-label='Private channels']");
+        var directMsgs = getLocatorWithoutWaiting("ul[aria-label='Direct Messages']");
+         return getLocatorWithoutWaiting(directMsgs, "h2 ~ *")
+                .all()
+                .stream()
+                .map(this::toFriend)
+                .toList();
+    }
+
+    private Friend toFriend(Locator locator) {
+        var link = getLocatorWithoutWaiting(locator, "a[class^=link]")
+                .getAttribute("href");
+
+        var name = getLocatorWithoutWaiting(locator, "div[class^=name_]")
+                .innerText();
+        var description = getLocatorWithoutWaiting(locator, "div[class^=subtext]")
+                .innerText();
+
+        return new Friend(
+                name,
+                name, // TODO
+                description,
+                link,
+                Status.Unknown // TODO
         );
     }
 
