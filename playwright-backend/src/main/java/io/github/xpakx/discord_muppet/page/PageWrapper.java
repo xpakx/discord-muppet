@@ -107,12 +107,19 @@ public class PageWrapper {
                 .map(Locator::innerText)
                 .orElse("");
 
+        var statusData = getOptionalLocator(locator, "div[role=img]")
+                .map((l) -> l.getAttribute("aria-label"))
+                .map((l) -> l.split(", "))
+                .orElse(new String[]{name, "Unknown"});
+        var shortName = statusData[0];
+        var status = statusData.length == 1 ? Status.Unknown: Status.toStatus(statusData[1]);
+
         return new Friend(
                 name,
-                name, // TODO
+                shortName,
                 description,
                 link,
-                Status.Unknown // TODO
+                status
         );
     }
 
