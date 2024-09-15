@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -87,7 +88,6 @@ public class PageWrapper {
     }
 
     public List<Friend> getContacts() {
-        // var friends = page.locator("nav[aria-label='Private channels']");
         var privateChannels = getLocatorWithoutWaiting("div[data-list-id^='private-channels']");
         var directMsgs = getLocatorWithoutWaiting(privateChannels, "ul[class^='content_']");
          return directMsgs.locator("h2 ~ *")
@@ -103,8 +103,9 @@ public class PageWrapper {
 
         var name = getLocatorWithoutWaiting(locator, "div[class^=name_]")
                 .innerText();
-        var description = getLocatorWithoutWaiting(locator, "div[class^=subtext]")
-                .innerText();
+        var description = getOptionalLocator(locator, "div[class^=subtext]")
+                .map(Locator::innerText)
+                .orElse("");
 
         return new Friend(
                 name,
@@ -145,6 +146,14 @@ public class PageWrapper {
         var locator = page.locator(selector);
         locator.waitFor(new Locator.WaitForOptions().setTimeout(0));
         return locator;
+    }
+
+    private Optional<Locator> getOptionalLocator(Locator parent, String selector) {
+        var locator = parent.locator(selector);
+        if (locator.count() == 0) {
+            return Optional.empty();
+        }
+        return Optional.of(locator);
     }
 
     @PreDestroy
