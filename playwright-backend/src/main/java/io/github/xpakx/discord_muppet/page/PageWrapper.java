@@ -88,8 +88,9 @@ public class PageWrapper {
 
     public List<Friend> getContacts() {
         // var friends = page.locator("nav[aria-label='Private channels']");
-        var directMsgs = getLocatorWithoutWaiting("ul[aria-label='Direct Messages']");
-         return getLocatorWithoutWaiting(directMsgs, "h2 ~ *")
+        var privateChannels = getLocatorWithoutWaiting("div[data-list-id^='private-channels']");
+        var directMsgs = getLocatorWithoutWaiting(privateChannels, "ul[class^='content_']");
+         return directMsgs.locator("h2 ~ *")
                 .all()
                 .stream()
                 .map(this::toFriend)
@@ -115,7 +116,7 @@ public class PageWrapper {
     }
 
     public User getStatus() {
-        var statusWrapper = getLocatorWithoutWaiting("section[aria-label='User area']");
+        var statusWrapper = getLocatorWithoutWaiting("section[class^='panels_']");
         var userData = getLocatorWithoutWaiting(statusWrapper, "div[class^='nameTag']")
                 .innerText();
         var statusSplit = userData.split("\n");
