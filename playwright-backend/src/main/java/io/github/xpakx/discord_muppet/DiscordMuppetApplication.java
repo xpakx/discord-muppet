@@ -41,7 +41,9 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		profileService.saveUser(status);
 		var contacts = page.getContacts();
 		profileService.saveContacts(contacts);
-		System.out.println(page.getStatus());
-		System.out.println(page.getContacts());
+		var notificationMap = page.getNotifications();
+		System.out.println(status);
+		System.out.println(contacts);
+		System.out.println(notificationMap);
 	}
 }
