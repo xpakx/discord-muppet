@@ -1,6 +1,7 @@
 package io.github.xpakx.discord_muppet;
 
 import io.github.xpakx.discord_muppet.model.ProfileService;
+import io.github.xpakx.discord_muppet.notification.NotificationService;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,9 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 	@Autowired
 	ProfileService profileService;
 
+	@Autowired
+	NotificationService notificationService;
+
 	public static void main(String[] args) {
 		SpringApplication.run(DiscordMuppetApplication.class, args);
 	}
@@ -42,6 +46,8 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		var contacts = page.getContacts();
 		profileService.saveContacts(contacts);
 		var notificationMap = page.getNotifications();
+		notificationService.saveNotifications(notificationMap);
+
 		System.out.println(status);
 		System.out.println(contacts);
 		System.out.println(notificationMap);
