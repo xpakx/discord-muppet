@@ -30,8 +30,7 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... arg0) throws Exception {
-		// page.goToLogin();
-		page.goTo("http://localhost:8000"); // test server
+		page.goToLogin();
 		page.fillLoginForm(email, password);
 		TimeUnit.SECONDS.sleep(5);
 		System.out.println(page.url());

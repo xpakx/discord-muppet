@@ -24,10 +24,16 @@ public class PageWrapper {
     private final Browser browser;
     private final BrowserContext context;
     private final Playwright playwright;
+    private final String serverUrl;
     Logger logger = LoggerFactory.getLogger(PageWrapper.class);
 
-    public PageWrapper(Playwright.CreateOptions options, @Value("${user.agent}") String userAgentValue) {
+    public PageWrapper(
+            Playwright.CreateOptions options,
+            @Value("${user.agent}") String userAgentValue,
+            @Value("${discord.url}") String serverUrl
+    ) {
         final String userAgent = "--user-agent=%s".formatted(userAgentValue);
+        this.serverUrl = serverUrl;
         try  {
             this.playwright = Playwright.create(options);
             logger.info("Starting browser");
@@ -49,7 +55,7 @@ public class PageWrapper {
 
     public void goToLogin() {
         logger.info("Navigating to login page");
-        page.navigate("https://discord.com/app");
+        page.navigate(serverUrl + "/app");
     }
 
     @DebugScreenshot()
