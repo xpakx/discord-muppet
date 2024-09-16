@@ -113,6 +113,8 @@ public class PageWrapper {
     private Friend toFriend(Locator locator) {
         var link = getLocatorWithoutWaiting(locator, "a[class^=link]")
                 .getAttribute("href");
+        var channelSplit = link.split("/");
+        var channelId = channelSplit[channelSplit.length-1];
 
         var name = getLocatorWithoutWaiting(locator, "div[class^=name_]")
                 .innerText();
@@ -132,6 +134,7 @@ public class PageWrapper {
                 shortName,
                 description,
                 link,
+                channelId,
                 status
         );
     }
