@@ -75,6 +75,10 @@ public class PageWrapper {
         return page.title();
     }
 
+    public String url() {
+        return page.url();
+    }
+
     public void makeScreenshot() {
         String name = "screenshot_" + Instant.now().toString() + ".png";
         makeScreenshot(name);

@@ -1,5 +1,6 @@
 package io.github.xpakx.discord_muppet;
 
+import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,16 +21,28 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 	@Autowired
 	PageWrapper page;
 
+	@Autowired
+	ProfileService profileService;
+
 	public static void main(String[] args) {
 		SpringApplication.run(DiscordMuppetApplication.class, args);
 	}
 
 	@Override
 	public void run(String... arg0) throws Exception {
-		page.goToLogin();
-		System.out.println(page.title());
+		// page.goToLogin();
+		page.goTo("http://localhost:8000"); // test server
 		page.fillLoginForm(email, password);
 		TimeUnit.SECONDS.sleep(5);
+		System.out.println(page.url());
+		// TODO: test login
 		page.makeScreenshot();
+
+		var status = page.getStatus();
+		profileService.saveUser(status);
+		var contacts = page.getContacts();
+		profileService.saveContacts(contacts);
+		System.out.println(page.getStatus());
+		System.out.println(page.getContacts());
 	}
 }
