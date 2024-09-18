@@ -18,6 +18,8 @@ var (
 	subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	highlight = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
 	special   = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
+	yellow   = lipgloss.Color("#F4D03F")
+	red   = lipgloss.Color("#E74C3C")
 
 	border = lipgloss.Border{
 		Top:         "─",
@@ -46,27 +48,57 @@ var (
 			MarginRight(2).
 			Render
 
-	checkMark = lipgloss.NewStyle().SetString("⍟").
+	
+	onlineBadge = lipgloss.NewStyle().SetString("⍟").
 			Foreground(special).
 			PaddingRight(1).
 			String()
+	idleBadge = lipgloss.NewStyle().SetString("◷").
+			Foreground(yellow).
+			PaddingRight(1).
+			String()
+	doNotDisturbBadge = lipgloss.NewStyle().SetString("⊗").
+			Foreground(red).
+			PaddingRight(1).
+			String()
+	invisibleBadge = lipgloss.NewStyle().SetString("👻").
+			PaddingRight(1).
+			String()
 
-	friend = func(s string, notif bool, active bool) string {
+
+	friend = func(friend Friend) string {
 		result := ""
 		padding := 0;
-		if notif {
-			result += checkMark
+		switch (friend.Status) {
+		case "Online":
+			result += onlineBadge
+			break
+		case "Idle":
+			result += idleBadge
+			break
+		case "DoNotDisturb":
+			result += doNotDisturbBadge
+			break
+		default:
+			padding += 2
+		}
+		if (friend.Online()) {
+			result += lipgloss.NewStyle().
+				PaddingLeft(padding).
+				Render(friend.VisibleName)
 		} else {
-			padding = 2
+			result += lipgloss.NewStyle().
+				PaddingLeft(padding).
+				Foreground(lipgloss.AdaptiveColor{Light: "#969B86", Dark: "#696969"}).
+				Render(friend.VisibleName)
 		}
-		if (active) {
-			return result + lipgloss.NewStyle().PaddingLeft(padding).Render(s)
+		if friend.NewMessages {
+			result += lipgloss.NewStyle().
+			        Foreground(red).
+				PaddingLeft(1).
+				Render(fmt.Sprintf("(%d)", friend.Notifications))
 		}
-
-		return result + lipgloss.NewStyle().
-			PaddingLeft(padding).
-			Foreground(lipgloss.AdaptiveColor{Light: "#969B86", Dark: "#696969"}).
-			Render(s)
+		return result
 	}
 
 	// Status Bar.
@@ -89,6 +121,39 @@ var (
 			Background(lipgloss.Color("#A550DF")).
 			Align(lipgloss.Left).
 			MarginRight(1)
+
+	onlineStyle = statusStyle.
+			SetString("⍟").
+			Foreground(special).
+			String()
+	idleStyle = statusStyle.
+			SetString("◷").
+			Foreground(yellow).
+			String()
+	doNotDisturbStyle = statusStyle.
+			SetString("⊗").
+			Foreground(red).
+			String()
+	invisibleStyle = statusStyle.
+			SetString("👻").
+			PaddingRight(1).
+			String()
+
+	statusBadge = func(status string) string {
+		switch(status) {
+		case "Online":
+			return onlineStyle
+		case "Idle":
+			return idleStyle
+		case "DoNotDisturb":
+			return doNotDisturbStyle
+		case "Invisible":
+			return invisibleStyle
+		default:
+			return " "
+		}
+	}
+
 
 	statusText = lipgloss.NewStyle().Inherit(descriptionBarStyle)
 
@@ -127,7 +192,7 @@ var (
 	docStyle = lipgloss.NewStyle().Padding(1, 2, 1, 2)
 )
 
-func draw(profile Profile) {
+func draw(profile Profile, contacts []Friend) (string) {
 	physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	doc := strings.Builder{}
 
@@ -139,16 +204,18 @@ func draw(profile Profile) {
 			message("Me", "18:50", "Msg 2", true, chatWidth),
 		)
 
+
+	friends := []string{ friendHeader("Contacts") }
+
+
+	for _, f := range contacts {
+		friends = append(friends, friend(f))
+	}
+
+
 	lists := lipgloss.JoinHorizontal(lipgloss.Top,
 		list.Width(columnWidth).Height(19).Render(
-			lipgloss.JoinVertical(lipgloss.Left,
-				friendHeader("Contacts"),
-				friend("User 1", false, true),
-				friend("User 2", false, true),
-				friend("User 3", true, false),
-				friend("User 4", true, true),
-				friend("User 5", false, true),
-			),
+			lipgloss.JoinVertical(lipgloss.Left, friends...),
 		),
 
 		// input
@@ -168,18 +235,18 @@ func draw(profile Profile) {
 	{
 		w := lipgloss.Width
 
-		statusKey := modeStyle.Render("INSERT")
-		encoding := statusStyle.Render(profile.Status)
-		fishCake := logoStyle.Render("🧶 " + profile.VisibleName)
-		statusVal := statusText.
-			Width(width - w(statusKey) - w(encoding) - w(fishCake)).
+		modeIndicator := modeStyle.Render("INSERT")
+		statusIcon := statusBadge(profile.Status)
+		nameContainer := logoStyle.Render("🧶 " + profile.VisibleName)
+		description := statusText.
+			Width(width - w(modeIndicator) - w(statusIcon) - w(nameContainer)).
 			Render(profile.Description)
 
 		bar := lipgloss.JoinHorizontal(lipgloss.Top,
-			statusKey,
-			encoding,
-			statusVal,
-			fishCake,
+			modeIndicator,
+			statusIcon,
+			description,
+			nameContainer,
 		)
 
 		doc.WriteString(descriptionBarStyle.Width(width).Render(bar))
@@ -189,5 +256,5 @@ func draw(profile Profile) {
 		docStyle = docStyle.MaxWidth(physicalWidth)
 	}
 
-	fmt.Println(docStyle.Render(doc.String()))
+	return doc.String()
 }
