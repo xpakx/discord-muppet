@@ -256,5 +256,5 @@ func draw(profile Profile, contacts []Friend) (string) {
 		docStyle = docStyle.MaxWidth(physicalWidth)
 	}
 
-	return doc.String()
+	return docStyle.Render(doc.String())
 }
