@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
+@EnableScheduling
 public class DiscordMuppetApplication implements CommandLineRunner {
 	@Value("${discord.credentials.email}")
 	String email;
@@ -51,5 +53,7 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		System.out.println(status);
 		System.out.println(contacts);
 		System.out.println(notificationMap);
+
+		notificationService.startWatching();
 	}
 }

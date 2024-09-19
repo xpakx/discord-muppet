@@ -250,4 +250,7 @@ public class PageWrapper {
         return new NotificationElem(channelId, countValue);
     }
 
+    public Optional<String> content() {
+        return page != null ? Optional.ofNullable(page.content()) : Optional.empty();
+    }
 }
