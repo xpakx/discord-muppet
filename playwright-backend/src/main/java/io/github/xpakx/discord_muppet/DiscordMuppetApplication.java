@@ -3,6 +3,8 @@ package io.github.xpakx.discord_muppet;
 import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.notification.NotificationService;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -47,7 +49,9 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		profileService.saveUser(status);
 		var contacts = page.getContacts();
 		profileService.saveContacts(contacts);
-		var notificationMap = page.getNotifications();
+
+		Document doc = Jsoup.parse(page.content().get());
+		var notificationMap = notificationService.getNotifications(doc);
 		notificationService.saveNotifications(notificationMap);
 
 		System.out.println(status);

@@ -14,12 +14,8 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Component
 public class PageWrapper {
@@ -217,37 +213,6 @@ public class PageWrapper {
     private String toMessage(Locator locator) {
         return getLocatorWithoutWaiting(locator, "div[id^=message-content]")
                 .innerText();
-    }
-
-    public Map<String, Integer> getNotifications() {
-        var nav = getLocatorWithoutWaiting("nav[class^=wrapper]");
-        return nav.locator("div[class^=listItem_]")
-                .all()
-                .stream()
-                .map(this::toNotification)
-                .filter((n) -> n.count() > 0)
-                .collect(
-                        Collectors.toMap(
-                                NotificationElem::channel,
-                                NotificationElem::count,
-                                (oldValue, newValue) -> newValue,
-                                HashMap::new
-                        )
-                );
-    }
-
-    private NotificationElem toNotification(Locator locator) {
-        var channel = locator.locator("div[data-list-item-id^=guildsnav]");
-        if (channel.count() != 1) {
-            return new NotificationElem("", 0);
-        }
-        var channelId = channel.getAttribute("data-list-item-id").split("___")[1];
-        var count = locator.locator("div[class^=lowerBadge]");
-        if (count.count() != 1) {
-            return new NotificationElem(channelId, 0);
-        }
-        var countValue = Integer.parseInt(count.innerText());
-        return new NotificationElem(channelId, countValue);
     }
 
     public Optional<String> content() {

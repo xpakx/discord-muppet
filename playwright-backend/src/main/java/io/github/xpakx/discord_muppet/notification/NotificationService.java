@@ -1,6 +1,5 @@
 package io.github.xpakx.discord_muppet.notification;
 
-import com.microsoft.playwright.Locator;
 import io.github.xpakx.discord_muppet.page.NotificationElem;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
 import org.jsoup.Jsoup;
@@ -18,6 +17,7 @@ public class NotificationService {
     private Map<String, Integer> notifications = new HashMap<>();
     private final PageWrapper page;
     private boolean watch = false;
+    private String htmlCache = "";
 
     public NotificationService(PageWrapper page) {
         this.page = page;
@@ -41,6 +41,11 @@ public class NotificationService {
         if (html.isEmpty()) {
             return;
         }
+        if (html.get().equals(htmlCache)) {
+            System.out.println("equal to cached");
+            return;
+        }
+        htmlCache = html.get();
         Document doc = Jsoup.parse(html.get());
         notifications = getNotifications(doc);
         System.out.println(notifications);
