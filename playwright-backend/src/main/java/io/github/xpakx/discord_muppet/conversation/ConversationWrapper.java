@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ConversationWrapper {
@@ -21,6 +22,8 @@ public class ConversationWrapper {
     private String htmlCache = "";
     private boolean watch = false;
     private List<MessageItem> messages;
+    Set<String> loadedIds = ConcurrentHashMap.newKeySet();
+    Map<String, String> usernames = new ConcurrentHashMap<>();
 
     public ConversationWrapper(
             PageWrapper pageWrapper,
@@ -32,6 +35,9 @@ public class ConversationWrapper {
 
     public void openChannel(Friend contact) {
         page.navigate(serverUrl + contact.channelUrl());
+        stopWatching();
+        loadedIds.clear();
+        usernames.clear();
     }
 
     public void startWatching() {
@@ -56,8 +62,29 @@ public class ConversationWrapper {
         }
         htmlCache = html;
         Document doc = Jsoup.parse(html);
-        messages = fetchMessages(doc);
+        messages = fetchMessages(doc)
+                .stream()
+                .map(this::checkUsernames)
+                .toList();
+        messages
+                .stream()
+                .filter((m) -> m.type() == MessageType.Message)
+                .forEach((m) -> loadedIds.add(m.message().id()));
         System.out.println(messages);
+    }
+
+    private MessageItem checkUsernames(MessageItem m) {
+        if (m.type() != MessageType.Message) {
+            return m;
+        }
+        if (m.message().chainStart()) {
+            return m;
+        }
+        var username = usernames.getOrDefault(m.message().parentId(), null);
+        if (username != null) {
+            return MessageItem.of(m.message().withUsername(username));
+        }
+        return m;
     }
 
     public List<MessageItem> getMessages() {
@@ -85,12 +112,19 @@ public class ConversationWrapper {
             return e.select("> *")
                     .stream()
                     .map(this::toMessage)
+                    .filter(Objects::nonNull)
                     .toList();
         }
         return List.of();
     }
 
     private MessageItem toMessage(Element element) {
+        var idSplit = element.attr("data-list-item-id")
+                .split("-");
+        var id = idSplit[idSplit.length-1];
+        if (loadedIds.contains(id)) {
+            return null; // TODO: check if edited
+        }
         var content = element.selectFirst("div[id^=message-content]")
                         .text();
         var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
@@ -100,14 +134,17 @@ public class ConversationWrapper {
         var chainStart = element.classNames()
                 .stream()
                 .anyMatch((s) -> s.startsWith("groupStart"));
-        var idSplit = element.attr("data-list-item-id")
-                .split("-");
-        var id = idSplit[idSplit.length-1];
         var username = "";
+        var parentId = id;
         if (chainStart) {
             username = element.selectFirst("span[class^=username_]")
                     .text();
+            usernames.put(id, username);
+        } else {
+            parentId = element.attr("aria-labelledby")
+                    .split("message-username-")[1]
+                    .split(" ")[0];
         }
-        return MessageItem.of(new Message(content, time, chainStart, id, username));
+        return MessageItem.of(new Message(content, time, chainStart, id, username, parentId));
     }
 }

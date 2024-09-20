@@ -7,6 +7,18 @@ public record Message(
         LocalDateTime timestamp,
         boolean chainStart,
         String id,
-        String username
+        String username,
+        String parentId
         ) {
+
+        public Message withUsername(String username) {
+                return new Message(
+                        this.content,
+                        this.timestamp,
+                        this.chainStart,
+                        this.id,
+                        username,
+                        this.parentId
+                );
+        }
 }
