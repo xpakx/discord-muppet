@@ -10,6 +10,8 @@ import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -29,7 +31,7 @@ public class ConversationWrapper {
         page.navigate(serverUrl + contact.channelUrl());
     }
 
-    public List<String> getMessages() {
+    public List<MessageItem> getMessages() {
         Document doc = Jsoup.parse(page.content()); // TODO
 
         var chatWrapper = doc.select("main[class^=chatContent]");
@@ -41,9 +43,12 @@ public class ConversationWrapper {
                 .toList();
     }
 
-    public List<String> toMessageList(Element e) {
+    public List<MessageItem> toMessageList(Element e) {
         if ("separator".equals(e.attr("role"))) {
-            return List.of("-----" + e.attr("aria-label") + "----");
+            if (e.id().equals("---new-messages-bar")) {
+                return List.of(MessageItem.newSeparator());
+            }
+            return List.of(MessageItem.separator()); // timestamp?
         }
         if (e.hasAttr("class") && e.attr("class").startsWith("messageListItem")) {
             return e.select("> *")
@@ -54,8 +59,13 @@ public class ConversationWrapper {
         return List.of();
     }
 
-    private String toMessage(Element element) {
-        return element.select("div[id^=message-content]")
-                .text();
+    private MessageItem toMessage(Element element) {
+        var content = element.selectFirst("div[id^=message-content]")
+                        .text();
+        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        var timeElem = element.selectFirst("time")
+                .attr("datetime");
+        var time = LocalDateTime.parse(timeElem, formatter);
+        return MessageItem.of(new Message(content, time));
     }
 }
