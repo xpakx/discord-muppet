@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,9 @@ import java.util.List;
 public class ConversationWrapper {
     private final String serverUrl;
     private final Page page;
+    private String htmlCache = "";
+    private boolean watch = false;
+    private List<MessageItem> messages;
 
     public ConversationWrapper(
             PageWrapper pageWrapper,
@@ -31,9 +35,37 @@ public class ConversationWrapper {
         page.navigate(serverUrl + contact.channelUrl());
     }
 
-    public List<MessageItem> getMessages() {
-        Document doc = Jsoup.parse(page.content()); // TODO
+    public void startWatching() {
+        watch = true;
+    }
 
+    public void stopWatching() {
+        watch = false;
+    }
+
+    @Scheduled(fixedRate= 300)
+    public void checkMessages() {
+        if (!watch) {
+            return;
+        }
+        var html = page.content();
+        if (html.isEmpty()) {
+            return;
+        }
+        if (html.equals(htmlCache)) {
+            return;
+        }
+        htmlCache = html;
+        Document doc = Jsoup.parse(html);
+        messages = fetchMessages(doc);
+        System.out.println(messages);
+    }
+
+    public List<MessageItem> getMessages() {
+        return messages;
+    }
+
+    public List<MessageItem> fetchMessages(Document doc) {
         var chatWrapper = doc.select("main[class^=chatContent]");
         var messageContainers = chatWrapper.select("ol[role=list]");
         return messageContainers.select("> *")
