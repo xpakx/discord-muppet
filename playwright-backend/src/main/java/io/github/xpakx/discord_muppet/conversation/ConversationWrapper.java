@@ -1,6 +1,5 @@
 package io.github.xpakx.discord_muppet.conversation;
 
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
@@ -98,6 +97,17 @@ public class ConversationWrapper {
         var timeElem = element.selectFirst("time")
                 .attr("datetime");
         var time = LocalDateTime.parse(timeElem, formatter);
-        return MessageItem.of(new Message(content, time));
+        var chainStart = element.classNames()
+                .stream()
+                .anyMatch((s) -> s.startsWith("groupStart"));
+        var idSplit = element.attr("data-list-item-id")
+                .split("-");
+        var id = idSplit[idSplit.length-1];
+        var username = "";
+        if (chainStart) {
+            username = element.selectFirst("span[class^=username_]")
+                    .text();
+        }
+        return MessageItem.of(new Message(content, time, chainStart, id, username));
     }
 }
