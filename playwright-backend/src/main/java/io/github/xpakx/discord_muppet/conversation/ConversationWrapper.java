@@ -4,6 +4,9 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,23 +30,23 @@ public class ConversationWrapper {
     }
 
     public List<String> getMessages() {
-        var chatWrapper = getLocatorWithoutWaiting("main[class^=chatContent]");
-        var messageContainers = getLocatorWithoutWaiting(chatWrapper, "ol[role=list]");
-        return messageContainers.locator("> *")
-                .all()
+        Document doc = Jsoup.parse(page.content()); // TODO
+
+        var chatWrapper = doc.select("main[class^=chatContent]");
+        var messageContainers = chatWrapper.select("ol[role=list]");
+        return messageContainers.select("> *")
                 .stream()
                 .map(this::toMessageList)
                 .flatMap(List::stream)
                 .toList();
     }
 
-    public List<String> toMessageList(Locator locator) {
-        if ("separator".equals(locator.getAttribute("role"))) {
-            return List.of("-----" + locator.getAttribute("aria-label") + "----");
+    public List<String> toMessageList(Element e) {
+        if ("separator".equals(e.attr("role"))) {
+            return List.of("-----" + e.attr("aria-label") + "----");
         }
-        if (locator.getAttribute("class") != null && locator.getAttribute("class").startsWith("messageListItem")) {
-            return locator.locator("> *")
-                    .all()
+        if (e.hasAttr("class") && e.attr("class").startsWith("messageListItem")) {
+            return e.select("> *")
                     .stream()
                     .map(this::toMessage)
                     .toList();
@@ -51,20 +54,8 @@ public class ConversationWrapper {
         return List.of();
     }
 
-    private String toMessage(Locator locator) {
-        return getLocatorWithoutWaiting(locator, "div[id^=message-content]")
-                .innerText();
-    }
-
-    private Locator getLocatorWithoutWaiting(Locator parent, String selector) {
-        var locator = parent.locator(selector);
-        locator.waitFor(new Locator.WaitForOptions().setTimeout(0));
-        return locator;
-    }
-
-    private Locator getLocatorWithoutWaiting(String selector) {
-        var locator = page.locator(selector);
-        locator.waitFor(new Locator.WaitForOptions().setTimeout(0));
-        return locator;
+    private String toMessage(Element element) {
+        return element.select("div[id^=message-content]")
+                .text();
     }
 }
