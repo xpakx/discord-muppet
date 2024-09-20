@@ -42,7 +42,6 @@ public class NotificationService {
             return;
         }
         if (html.get().equals(htmlCache)) {
-            System.out.println("equal to cached");
             return;
         }
         htmlCache = html.get();

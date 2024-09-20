@@ -52,6 +52,10 @@ public class PageWrapper {
         }
     }
 
+    public Page newPage() {
+        return context.newPage();
+    }
+
     public void goToLogin() {
         logger.info("Navigating to login page");
         page.navigate(serverUrl + "/app");
@@ -183,36 +187,6 @@ public class PageWrapper {
 
     public void goTo(String url) {
         page.navigate(url);
-    }
-
-    public List<String> getMessages() {
-        var chatWrapper = getLocatorWithoutWaiting("main[class^=chatContent]");
-        var messageContainers = getLocatorWithoutWaiting(chatWrapper, "ol[role=list]");
-        return messageContainers.locator("> *")
-                .all()
-                .stream()
-                .map(this::toMessageList)
-                .flatMap(List::stream)
-                .toList();
-    }
-
-    public List<String> toMessageList(Locator locator) {
-        if ("separator".equals(locator.getAttribute("role"))) {
-            return List.of("-----" + locator.getAttribute("aria-label") + "----");
-        }
-        if (locator.getAttribute("class").startsWith("messageListItem")) {
-            return locator.locator("> *")
-                    .all()
-                    .stream()
-                    .map(this::toMessage)
-                    .toList();
-        }
-        return List.of();
-    }
-
-    private String toMessage(Locator locator) {
-        return getLocatorWithoutWaiting(locator, "div[id^=message-content]")
-                .innerText();
     }
 
     public Optional<String> content() {

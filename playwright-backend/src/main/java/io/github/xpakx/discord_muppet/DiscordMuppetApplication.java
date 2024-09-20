@@ -1,5 +1,6 @@
 package io.github.xpakx.discord_muppet;
 
+import io.github.xpakx.discord_muppet.conversation.ConversationWrapper;
 import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.notification.NotificationService;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
@@ -32,6 +33,9 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 	@Autowired
 	NotificationService notificationService;
 
+	@Autowired
+	ConversationWrapper conversationWrapper;
+
 	public static void main(String[] args) {
 		SpringApplication.run(DiscordMuppetApplication.class, args);
 	}
@@ -49,6 +53,8 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		profileService.saveUser(status);
 		var contacts = page.getContacts();
 		profileService.saveContacts(contacts);
+		conversationWrapper.openChannel(contacts.getFirst());
+		var messages = conversationWrapper.getMessages();
 
 		Document doc = Jsoup.parse(page.content().get());
 		var notificationMap = notificationService.getNotifications(doc);
@@ -57,6 +63,7 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		System.out.println(status);
 		System.out.println(contacts);
 		System.out.println(notificationMap);
+		System.out.println(messages);
 
 		notificationService.startWatching();
 	}
