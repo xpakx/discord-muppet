@@ -120,7 +120,7 @@ func (m websocket_service) handleMessage(rawMessage string) {
 }
 
 func extractDestination(message string) (string, error) {
-    pattern := `destination:/topic/(.*)/`
+    pattern := `destination:/topic/([a-z]+)`
     re := regexp.MustCompile(pattern)
     matches := re.FindStringSubmatch(message)
     if len(matches) < 2 {
