@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -34,8 +32,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "ctrl+c", "q":
             return m, tea.Quit
         }
-    case SocketMsg:
-	    fmt.Println(msg.msg)
+    case NotifMsg:
+	    m.contacts = msg.friends
+    case ChannelMsg:
+	    m.messages = append(m.messages, msg.messages...)
+    case OpenMsg:
+	    m.messages = msg.messages
     }
 
     return m, nil

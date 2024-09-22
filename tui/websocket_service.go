@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"regexp"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -95,8 +97,16 @@ func (ws *websocket_service) Run() {
 
 }
 
-type SocketMsg struct {
-	msg string // TODO
+type ChannelMsg struct {
+	messages []MessageItem
+}
+
+type OpenMsg struct {
+	messages []MessageItem
+}
+
+type NotifMsg struct {
+	friends []Friend
 }
 
 func (m websocket_service) handleMessage(rawMessage string) {
@@ -104,17 +114,32 @@ func (m websocket_service) handleMessage(rawMessage string) {
     if err == nil {
 	    switch destination {
 	    case "open":
-		    m.program.Send(SocketMsg{
-			    msg: fmt.Sprintf("open: %s", string(rawMessage)),
-		    })
+		    var data []MessageItem
+		    var body, errb = extractBody(rawMessage)
+		    if errb != nil {
+			    return
+		    }
+		    if err := json.Unmarshal([]byte(body), &data); err == nil {
+			    m.program.Send(OpenMsg{messages: data })
+		    }
 	    case "current":
-		    m.program.Send(SocketMsg{
-			    msg: fmt.Sprintf("current: %s", string(rawMessage)),
-		    })
+		    var data []MessageItem
+		    var body, errb = extractBody(rawMessage)
+		    if errb != nil {
+			    return
+		    }
+		    if err := json.Unmarshal([]byte(body), &data); err == nil {
+			    m.program.Send(ChannelMsg{messages: data })
+		    }
 	    case "friends":
-		    m.program.Send(SocketMsg{
-			    msg: fmt.Sprintf("friends: %s", string(rawMessage)),
-		    })
+		    var data []Friend
+		    var body, errb = extractBody(rawMessage)
+		    if errb != nil {
+			    return
+		    }
+		    if err := json.Unmarshal([]byte(body), &data); err == nil {
+			    m.program.Send(NotifMsg{friends: data })
+		    }
 	    }
     }
 }
@@ -127,4 +152,19 @@ func extractDestination(message string) (string, error) {
         return "", fmt.Errorf("destination not found in message")
     }
     return matches[1], nil
+}
+
+func extractBody(message string) (string, error) {
+    start := strings.Index(message, "\n\n")
+    if start == -1 {
+        return "", fmt.Errorf("start of body not found in message")
+    }
+    start += 2 
+
+    end := strings.Index(message, "\000")
+    if end == -1 {
+        return "", fmt.Errorf("end of body not found in message")
+    }
+
+    return message[start:end], nil
 }
