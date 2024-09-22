@@ -23,7 +23,7 @@ public class ConversationWrapper {
     private final Page page;
     private String htmlCache = "";
     private boolean watch = false;
-    private List<MessageItem> messages;
+    private List<MessageItem> messages = new ArrayList<>();
     Set<String> loadedIds = ConcurrentHashMap.newKeySet();
     Map<String, String> usernames = new ConcurrentHashMap<>();
     private final WebsocketService websocketService;
@@ -50,9 +50,10 @@ public class ConversationWrapper {
         TimeUnit.SECONDS.sleep(5); // TODO
         var html = page.content();
         Document doc = Jsoup.parse(html);
-        var messages = processMessages(doc);
+        messages = processMessages(doc);
         startWatching();
-        return messages;
+        websocketService.openConversation(messages);
+        return messages; // TODO: this should be deleted
     }
 
     public List<MessageItem> currentChannel() {
@@ -82,11 +83,12 @@ public class ConversationWrapper {
         htmlCache = html;
         Document doc = Jsoup.parse(html);
         var messages = processMessages(doc);
+        // TODO Add new messages to cache
         websocketService.updateConversation(messages);
     }
 
     public List<MessageItem> processMessages(Document doc) {
-        messages = fetchMessages(doc)
+        var messages = fetchMessages(doc)
                 .stream()
                 .map(this::checkUsernames)
                 .toList();
