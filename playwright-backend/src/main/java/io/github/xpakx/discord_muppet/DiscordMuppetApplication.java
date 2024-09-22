@@ -4,6 +4,7 @@ import io.github.xpakx.discord_muppet.conversation.ConversationWrapper;
 import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.notification.NotificationService;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -55,10 +56,14 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		conversationWrapper.startWatching();
 		var messages = conversationWrapper.getMessages();
 
+		var doc = Jsoup.parse(page.content().get());
+		var notifications = notificationService.getNotifications(doc);
+		profileService.saveNotifications(notifications);
 
 		System.out.println(status);
 		System.out.println(contacts);
 		System.out.println(messages);
+		System.out.println(notifications);
 
 		notificationService.startWatching();
 	}

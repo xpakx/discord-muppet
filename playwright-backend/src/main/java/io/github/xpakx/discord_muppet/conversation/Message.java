@@ -1,5 +1,7 @@
 package io.github.xpakx.discord_muppet.conversation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 public record Message(
@@ -8,7 +10,7 @@ public record Message(
         boolean chainStart,
         String id,
         String username,
-        String parentId
+        @JsonIgnore String parentId
         ) {
 
         public Message withUsername(String username) {

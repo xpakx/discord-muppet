@@ -1,7 +1,8 @@
 package io.github.xpakx.discord_muppet.model;
 
+import io.github.xpakx.discord_muppet.conversation.ConversationWrapper;
+import io.github.xpakx.discord_muppet.conversation.MessageItem;
 import io.github.xpakx.discord_muppet.model.dto.FriendData;
-import io.github.xpakx.discord_muppet.notification.NotificationService;
 import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,11 @@ public class ProfileService {
     private List<Friend> contacts;
     private Map<String, Integer> notifications = new HashMap<>();
     private final WebsocketService websocketService;
+    private final ConversationWrapper conversationWrapper;
 
-    public ProfileService(WebsocketService websocketService) {
+    public ProfileService(WebsocketService websocketService, ConversationWrapper conversationWrapper) {
         this.websocketService = websocketService;
+        this.conversationWrapper = conversationWrapper;
     }
 
     // TODO
@@ -65,5 +68,21 @@ public class ProfileService {
     public Integer getNotificationsFor(String channelId) {
         return this.notifications
                 .getOrDefault(channelId, 0);
+    }
+
+    public List<MessageItem> openChannel(String friendUsername) {
+        var friend = contacts.stream()
+                .filter((f) -> f.username().equals(friendUsername))
+                .findAny()
+                .orElseThrow();
+        try {
+            return conversationWrapper.openChannelRest(friend);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<MessageItem> currentChannel() {
+        return conversationWrapper.currentChannel();
     }
 }

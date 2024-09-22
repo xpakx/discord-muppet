@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ConversationWrapper {
@@ -44,6 +45,20 @@ public class ConversationWrapper {
         page.navigate(serverUrl + contact.channelUrl());
     }
 
+    public List<MessageItem> openChannelRest(Friend contact) throws InterruptedException {
+        openChannel(contact);
+        TimeUnit.SECONDS.sleep(5); // TODO
+        var html = page.content();
+        Document doc = Jsoup.parse(html);
+        var messages = processMessages(doc);
+        startWatching();
+        return messages;
+    }
+
+    public List<MessageItem> currentChannel() {
+        return messages;
+    }
+
     public void startWatching() {
         watch = true;
     }
@@ -66,6 +81,11 @@ public class ConversationWrapper {
         }
         htmlCache = html;
         Document doc = Jsoup.parse(html);
+        var messages = processMessages(doc);
+        websocketService.updateConversation(messages);
+    }
+
+    public List<MessageItem> processMessages(Document doc) {
         messages = fetchMessages(doc)
                 .stream()
                 .map(this::checkUsernames)
@@ -74,7 +94,7 @@ public class ConversationWrapper {
                 .stream()
                 .filter((m) -> m.type() == MessageType.Message)
                 .forEach((m) -> loadedIds.add(m.message().id()));
-        websocketService.updateConversation(messages);
+        return messages;
     }
 
     private MessageItem checkUsernames(MessageItem m) {

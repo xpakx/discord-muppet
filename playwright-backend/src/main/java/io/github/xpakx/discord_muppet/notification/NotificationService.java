@@ -26,7 +26,6 @@ public class NotificationService {
         this.profileService = profileService;
     }
 
-
     @Scheduled(cron= "0/10 * * ? * *")
     public void checkNotifications() {
         if (!watch) {
