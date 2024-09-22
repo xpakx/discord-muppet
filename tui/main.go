@@ -12,10 +12,10 @@ import (
 func main() {
 	profile := getProfile()
 	contacts := getContacts()
-	draw(profile, contacts)
+	msgs := currentChannel()
 	w := websocket_service{};
 
-	p := tea.NewProgram(initialModel(profile, contacts, &w))
+	p := tea.NewProgram(initialModel(profile, contacts, msgs, &w))
 	w.SetProgram(p)
 	w.ConnectWS()
 	go w.Run()
@@ -38,6 +38,19 @@ func main() {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
 	}
+}
+
+type Message struct {
+	Content       string    `json:"content"`
+	Timestamp     string    `json:"timestamp"`
+	ChainStart    bool      `json:"chainStart"`
+	Id            string    `json:"id"`
+	Username      string    `json:"username"`
+}
+
+type MessageItem struct {
+	Type          string    `json:"type"`
+	Message       Message   `json:"message"`
 }
 
 type Profile struct {
@@ -104,4 +117,50 @@ func getContacts() ([]Friend) {
 	}
 
 	return friends
+}
+
+func openChannel(f Friend) ([]MessageItem) {
+	res, err := http.Get("http://localhost:8080/api/v1/contacts/" + f.Username)
+	if err != nil {
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
+	}
+
+	if res.StatusCode != 200 {
+		fmt.Printf("error: %d\n", res.StatusCode)
+		os.Exit(1)
+	}
+
+	var msgs []MessageItem
+
+	err = json.NewDecoder(res.Body).Decode(&msgs)
+	if err != nil {
+		fmt.Printf("error: %d\n", err)
+		os.Exit(1)
+	}
+
+	return msgs
+}
+
+func currentChannel() ([]MessageItem) {
+	res, err := http.Get("http://localhost:8080/api/v1/current")
+	if err != nil {
+		fmt.Printf("error: %s\n", err)
+		os.Exit(1)
+	}
+
+	if res.StatusCode != 200 {
+		fmt.Printf("error: %d\n", res.StatusCode)
+		os.Exit(1)
+	}
+
+	var msgs []MessageItem
+
+	err = json.NewDecoder(res.Body).Decode(&msgs)
+	if err != nil {
+		fmt.Printf("error: %d\n", err)
+		os.Exit(1)
+	}
+
+	return msgs
 }

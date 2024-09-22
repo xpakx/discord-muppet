@@ -192,17 +192,21 @@ var (
 	docStyle = lipgloss.NewStyle().Padding(1, 2, 1, 2)
 )
 
-func draw(profile Profile, contacts []Friend) (string) {
+func draw(profile Profile, contacts []Friend, messages []MessageItem) (string) {
 	physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	doc := strings.Builder{}
 
-
 	chatWidth := width - columnWidth - 5;
+	var renderedMessages []string
+	for _, msg := range messages {
+		if msg.Type == "Message" {
+			renderedMessages = append(
+				renderedMessages, 
+				message(msg.Message.Username, msg.Message.Timestamp, msg.Message.Content, msg.Message.Username == profile.VisibleName, chatWidth))
+		}
+	}
 
-	messages := lipgloss.JoinVertical(lipgloss.Top,
-			message("User 1", "18:49", "Msg 1", false, chatWidth),
-			message("Me", "18:50", "Msg 2", true, chatWidth),
-		)
+	messageContainer := lipgloss.JoinVertical(lipgloss.Top, renderedMessages...)
 
 
 	friends := []string{ friendHeader("Contacts") }
@@ -220,7 +224,7 @@ func draw(profile Profile, contacts []Friend) (string) {
 
 		// input
 		lipgloss.JoinVertical(lipgloss.Top,
-			lipgloss.NewStyle().MaxHeight(19 - 4).Height(19 - 4).Render(messages),
+			lipgloss.NewStyle().MaxHeight(19 - 4).Height(19 - 4).Render(messageContainer),
 			input.
 			Width(width - columnWidth - 5).
 			Render("Message"),

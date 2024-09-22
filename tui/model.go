@@ -9,14 +9,16 @@ import (
 type model struct {
     profile    Profile
     contacts   []Friend   
+    messages   []MessageItem   
     websocket  *websocket_service
 }
 
-func initialModel(profile Profile, contacts []Friend, websocket *websocket_service) model {
+func initialModel(profile Profile, contacts []Friend, messages []MessageItem, websocket *websocket_service) model {
 
 	return model{
 		profile:  profile,
 		contacts: contacts,
+		messages: messages,
 		websocket: websocket,
 	}
 }
@@ -40,5 +42,5 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    return draw(m.profile, m.contacts)
+    return draw(m.profile, m.contacts, m.messages)
 }
