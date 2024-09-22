@@ -1,7 +1,9 @@
 package io.github.xpakx.discord_muppet.notification;
 
+import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.page.NotificationElem;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,23 +16,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
-    private Map<String, Integer> notifications = new HashMap<>();
     private final PageWrapper page;
     private boolean watch = false;
     private String htmlCache = "";
+    private final ProfileService profileService;
 
-    public NotificationService(PageWrapper page) {
+    public NotificationService(PageWrapper page, ProfileService profileService) {
         this.page = page;
+        this.profileService = profileService;
     }
 
-    public void saveNotifications(Map<String, Integer> notifications) {
-        this.notifications = notifications;
-    }
-
-    public Integer getNotificationsFor(String channelId) {
-        return this.notifications
-                .getOrDefault(channelId, 0);
-    }
 
     @Scheduled(cron= "0/10 * * ? * *")
     public void checkNotifications() {
@@ -46,8 +41,9 @@ public class NotificationService {
         }
         htmlCache = html.get();
         Document doc = Jsoup.parse(html.get());
-        notifications = getNotifications(doc);
+        var notifications = getNotifications(doc);
         System.out.println(notifications);
+        profileService.saveNotifications(notifications);
     }
 
     public void startWatching() {

@@ -3,6 +3,7 @@ package io.github.xpakx.discord_muppet.conversation;
 import com.microsoft.playwright.Page;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,20 +25,23 @@ public class ConversationWrapper {
     private List<MessageItem> messages;
     Set<String> loadedIds = ConcurrentHashMap.newKeySet();
     Map<String, String> usernames = new ConcurrentHashMap<>();
+    private final WebsocketService websocketService;
 
     public ConversationWrapper(
             PageWrapper pageWrapper,
-            @Value("${discord.url}") String serverUrl
+            @Value("${discord.url}") String serverUrl,
+            WebsocketService websocketService
     ) {
         this.page = pageWrapper.newPage();
         this.serverUrl = serverUrl;
+        this.websocketService = websocketService;
     }
 
     public void openChannel(Friend contact) {
-        page.navigate(serverUrl + contact.channelUrl());
         stopWatching();
         loadedIds.clear();
         usernames.clear();
+        page.navigate(serverUrl + contact.channelUrl());
     }
 
     public void startWatching() {
@@ -70,7 +74,7 @@ public class ConversationWrapper {
                 .stream()
                 .filter((m) -> m.type() == MessageType.Message)
                 .forEach((m) -> loadedIds.add(m.message().id()));
-        System.out.println(messages);
+        websocketService.updateConversation(messages);
     }
 
     private MessageItem checkUsernames(MessageItem m) {
