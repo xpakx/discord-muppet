@@ -1,6 +1,7 @@
 package io.github.xpakx.discord_muppet.page;
 
 import com.microsoft.playwright.*;
+import io.github.xpakx.discord_muppet.cookie.CookieService;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.model.Status;
 import io.github.xpakx.discord_muppet.model.User;
@@ -24,13 +25,18 @@ public class PageWrapper {
     private final BrowserContext context;
     private final Playwright playwright;
     private final String serverUrl;
+    private final CookieService cookies;
+    private boolean cookiesLoaded = false;
     Logger logger = LoggerFactory.getLogger(PageWrapper.class);
 
     public PageWrapper(
             Playwright.CreateOptions options,
             @Value("${user.agent}") String userAgentValue,
-            @Value("${discord.url}") String serverUrl
+            @Value("${discord.url}") String serverUrl,
+            CookieService cookies
     ) {
+        this.cookies = cookies;
+        var currentCookies = cookies.loadCookies();
         final String userAgent = "--user-agent=%s".formatted(userAgentValue);
         this.serverUrl = serverUrl;
         try  {
@@ -42,6 +48,10 @@ public class PageWrapper {
                            // .setHeadless(false)
             );
             this.context = browser.newContext();
+            if (currentCookies != null) {
+                context.addCookies(currentCookies);
+                cookiesLoaded = true;
+            }
             context.addInitScript(Paths.get("scripts/preload.js"));
 
             logger.info("Opening new tab");
@@ -78,6 +88,11 @@ public class PageWrapper {
         page.mouse().move(box.x + box.width/2, box.y + box.height/2);
         button.hover();
         button.click();
+    }
+
+    public void saveCookies() {
+        var currentCookies = context.cookies(serverUrl);
+        cookies.saveCookies(currentCookies);
     }
 
     public String title() {
@@ -191,5 +206,9 @@ public class PageWrapper {
 
     public Optional<String> content() {
         return page != null ? Optional.ofNullable(page.content()) : Optional.empty();
+    }
+
+    public boolean hasCookies() {
+        return cookiesLoaded;
     }
 }

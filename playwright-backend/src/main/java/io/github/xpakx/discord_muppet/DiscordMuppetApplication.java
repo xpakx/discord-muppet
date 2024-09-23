@@ -42,10 +42,13 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 	@Override
 	public void run(String... arg0) throws Exception {
 		page.goToLogin();
-		page.fillLoginForm(email, password);
-		TimeUnit.SECONDS.sleep(5);
+		if (!page.hasCookies()) {
+			page.fillLoginForm(email, password);
+			TimeUnit.SECONDS.sleep(5);
+			// TODO: test login
+			page.saveCookies();
+		}
 		System.out.println(page.url());
-		// TODO: test login
 		page.makeScreenshot();
 
 		var status = page.getStatus();
