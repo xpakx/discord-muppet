@@ -24,21 +24,23 @@ public class MessageProcessor {
 
     @PostConstruct
     public void start() {
-        thread = new Thread(() -> {
-            while (running) {
-                try {
-                    String message = messageQueue.take();
-                    System.out.println("New message " + message);
-                    conversation.sendMessage(message);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    if (!running) {
-                        break;
-                    }
+        thread = new Thread(this::run);
+        thread.start();
+    }
+
+    public void run() {
+        while (running) {
+            try {
+                String message = messageQueue.take();
+                System.out.println("New message " + message);
+                conversation.sendMessage(message);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                if (!running) {
+                    break;
                 }
             }
-        });
-        thread.start();;
+        }
     }
 
     @PreDestroy
