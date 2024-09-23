@@ -12,6 +12,7 @@ public class MessageProcessor {
     private final ConversationWrapper conversation;
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
     private Thread thread;
+    private volatile boolean running = true;
 
     public MessageProcessor(ConversationWrapper conversation) {
         this.conversation = conversation;
@@ -24,14 +25,15 @@ public class MessageProcessor {
     @PostConstruct
     public void start() {
         thread = new Thread(() -> {
-            while (true) {
-                if (!messageQueue.isEmpty()) {
-                    try {
-                        String message = messageQueue.take();
-                        System.out.println("New message " + message);
-                        conversation.sendMessage(message);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+            while (running) {
+                try {
+                    String message = messageQueue.take();
+                    System.out.println("New message " + message);
+                    conversation.sendMessage(message);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    if (!running) {
+                        break;
                     }
                 }
             }
@@ -41,6 +43,7 @@ public class MessageProcessor {
 
     @PreDestroy
     public void stop() {
+        running = false;
         thread.interrupt();
     }
 }
