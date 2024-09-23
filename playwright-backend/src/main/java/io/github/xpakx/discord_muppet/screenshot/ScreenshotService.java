@@ -30,7 +30,7 @@ public class ScreenshotService {
     }
 
     @AfterReturning(value = "debugScreenshotPointcut(cacheIncrement)", argNames = "joinPoint,cacheIncrement")
-    public void incrementAfterReturning(JoinPoint joinPoint, DebugScreenshot cacheIncrement) {
+    public void screenshot(JoinPoint joinPoint, DebugScreenshot cacheIncrement) {
         String prefix = cacheIncrement.prefix();
         String name = prefix  + "_" + Instant.now().toString() + ".png";
         page.makeScreenshot(name);

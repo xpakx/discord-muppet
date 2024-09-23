@@ -66,5 +66,10 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		System.out.println(notifications);
 
 		notificationService.startWatching();
+
+		TimeUnit.SECONDS.sleep(5);
+		profileService.sendMessage("Test");
+		profileService.sendMessage("Test2");
+		profileService.sendMessage("Test10");
 	}
 }
