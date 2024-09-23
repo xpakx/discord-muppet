@@ -4,7 +4,6 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
-import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
 import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -178,9 +176,9 @@ public class ConversationWrapper {
     }
 
     public void sendMessage(String message) {
-        var emailInput = page.locator("div[role='textbox']");
-        emailInput.focus();
-        emailInput.pressSequentially(message, new Locator.PressSequentiallyOptions());
-        emailInput.press("Enter");
+        var input = page.locator("div[role='textbox']");
+        input.focus();
+        input.pressSequentially(message, new Locator.PressSequentiallyOptions().setDelay(100));
+        input.press("Enter");
     }
 }
