@@ -1,10 +1,11 @@
 package main
 
 import (
-	"net/http"
-	"fmt"
-	"os"
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -163,4 +164,21 @@ func currentChannel() ([]MessageItem) {
 	}
 
 	return msgs
+}
+
+func sendMessage(msg string) {
+	// TODO: error messages
+	res, err := http.Post(
+		"http://localhost:8080/api/v1/messages",
+		"text/plain",
+		bytes.NewBufferString(msg))
+	if err != nil {
+		fmt.Printf("error: %s\n", err)
+		return
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		fmt.Printf("error: %d\n", res.StatusCode)
+	}
 }

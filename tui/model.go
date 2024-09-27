@@ -61,8 +61,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput.Blur()
 			return m, nil
 		case "enter":
-			// TODO
+			msg := m.textInput.Value()
+			if msg == "" {
+				return m, nil
+			}
 			m.textInput.Reset()
+			sendMessage(msg) // TODO
 			return m, nil
 		default:
 			var cmd tea.Cmd
