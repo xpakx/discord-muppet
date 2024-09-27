@@ -64,25 +64,38 @@ var (
 	invisibleBadge = lipgloss.NewStyle().SetString("👻").
 			PaddingRight(1).
 			String()
+	choiceBadge = lipgloss.NewStyle().SetString("→").
+			Foreground(special).
+			PaddingRight(1).
+			String()
 
 
-	friend = func(friend Friend) string {
+	friend = func(friend Friend, choice bool) string {
 		result := ""
 		padding := 0;
-		switch (friend.Status) {
-		case "Online":
-			result += onlineBadge
-			break
-		case "Idle":
-			result += idleBadge
-			break
-		case "DoNotDisturb":
-			result += doNotDisturbBadge
-			break
-		default:
-			padding += 2
+		if choice {
+			result += choiceBadge
+		} else {
+			switch (friend.Status) {
+			case "Online":
+				result += onlineBadge
+				break
+			case "Idle":
+				result += idleBadge
+				break
+			case "DoNotDisturb":
+				result += doNotDisturbBadge
+				break
+			default:
+				padding += 2
+			}
 		}
-		if (friend.Online()) {
+		if choice {
+			result += lipgloss.NewStyle().
+				PaddingLeft(padding).
+				Foreground(special).
+				Render(friend.VisibleName)
+		} else if (friend.Online()) {
 			result += lipgloss.NewStyle().
 				PaddingLeft(padding).
 				Render(friend.VisibleName)
@@ -217,8 +230,9 @@ func draw(m model) (string) {
 	friends := []string{ friendHeader("Contacts") }
 
 
-	for _, f := range contacts {
-		friends = append(friends, friend(f))
+	for i, f := range contacts {
+		choice := m.contactsActive && i == m.currentContact
+		friends = append(friends, friend(f, choice))
 	}
 
 
