@@ -8,11 +8,13 @@ import (
 )
 
 type model struct {
-    profile    Profile
-    contacts   []Friend   
-    messages   []MessageItem   
-    websocket  *websocket_service
-    textInput  textarea.Model
+    profile            Profile
+    contacts           []Friend   
+    currentContact     int
+    contactsActive     bool
+    messages           []MessageItem   
+    websocket          *websocket_service
+    textInput          textarea.Model
 }
 
 func initialModel(profile Profile, contacts []Friend, messages []MessageItem, websocket *websocket_service) model {
@@ -36,6 +38,8 @@ func initialModel(profile Profile, contacts []Friend, messages []MessageItem, we
 		messages: messages,
 		websocket: websocket,
 		textInput: textInput,
+		currentContact: 0,
+		contactsActive: false,
 	}
 }
 
@@ -70,7 +74,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 		    return m, tea.Quit
 		case "i":
+		    m.contactsActive = false
 		    return m, m.textInput.Focus()
+		case "c":
+		    m.contactsActive = !m.contactsActive
+		    return m, nil
+		case "j", "down":
+			if m.contactsActive {
+				m.currentContact = min(m.currentContact+1, len(m.contacts)-1)
+			        return m, nil
+			}
+		case "k", "up":
+			if m.contactsActive {
+				m.currentContact = max(m.currentContact-1, 0)
+			        return m, nil
+			}
+		case "enter":
+			if m.contactsActive {
+				if m.currentContact >= 0 && m.currentContact < len(m.contacts) {
+					currentContact := m.contacts[m.currentContact]
+					return m, func() tea.Msg {
+						messages := openChannel(currentContact)
+						return OpenMsg{messages}
+					}
+				}
+			        return m, nil
+			}
 		}
         }
     case NotifMsg:
@@ -89,5 +118,5 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    return draw(m.profile, m.contacts, m.messages, m.textInput)
+    return draw(m)
 }

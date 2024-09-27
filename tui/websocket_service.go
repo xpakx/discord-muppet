@@ -120,7 +120,8 @@ func (m websocket_service) handleMessage(rawMessage string) {
 			    return
 		    }
 		    if err := json.Unmarshal([]byte(body), &data); err == nil {
-			    m.program.Send(OpenMsg{messages: data })
+			    // TODO
+			    //m.program.Send(OpenMsg{messages: data })
 		    }
 	    case "current":
 		    var data []MessageItem

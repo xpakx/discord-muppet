@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
 )
@@ -193,7 +192,12 @@ var (
 	docStyle = lipgloss.NewStyle().Padding(1, 2, 1, 2)
 )
 
-func draw(profile Profile, contacts []Friend, messages []MessageItem, textInput textarea.Model) (string) {
+func draw(m model) (string) {
+	profile := m.profile
+	contacts := m.contacts
+	messages := m.messages
+	textInput := m.textInput
+
 	physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	doc := strings.Builder{}
 
