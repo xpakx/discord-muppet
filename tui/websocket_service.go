@@ -103,6 +103,7 @@ type ChannelMsg struct {
 
 type OpenMsg struct {
 	messages []MessageItem
+	user string
 }
 
 type NotifMsg struct {
@@ -114,14 +115,13 @@ func (m websocket_service) handleMessage(rawMessage string) {
     if err == nil {
 	    switch destination {
 	    case "open":
-		    var data []MessageItem
+		    var data OpenConversation
 		    var body, errb = extractBody(rawMessage)
 		    if errb != nil {
 			    return
 		    }
 		    if err := json.Unmarshal([]byte(body), &data); err == nil {
-			    // TODO
-			    //m.program.Send(OpenMsg{messages: data })
+			    m.program.Send(OpenMsg{messages: data.Messages, user: data.Username })
 		    }
 	    case "current":
 		    var data []MessageItem

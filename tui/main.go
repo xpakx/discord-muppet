@@ -70,6 +70,11 @@ type Friend struct {
 	Notifications int       `json:"notifications"`
 }
 
+type OpenConversation struct {
+	Username      string    `json:"username"`
+	Messages      []MessageItem   `json:"messages"`
+}
+
 func (f Friend) Online() bool {
 	return f.Status == "Online"
 }
@@ -120,7 +125,7 @@ func getContacts() ([]Friend) {
 	return friends
 }
 
-func openChannel(f Friend) ([]MessageItem) {
+func openChannel(f Friend) (OpenConversation) {
 	res, err := http.Get("http://localhost:8080/api/v1/contacts/" + f.Username)
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
@@ -132,7 +137,7 @@ func openChannel(f Friend) ([]MessageItem) {
 		os.Exit(1)
 	}
 
-	var msgs []MessageItem
+	var msgs OpenConversation
 
 	err = json.NewDecoder(res.Body).Decode(&msgs)
 	if err != nil {
@@ -143,7 +148,7 @@ func openChannel(f Friend) ([]MessageItem) {
 	return msgs
 }
 
-func currentChannel() ([]MessageItem) {
+func currentChannel() (OpenConversation) {
 	res, err := http.Get("http://localhost:8080/api/v1/current")
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
@@ -155,7 +160,7 @@ func currentChannel() ([]MessageItem) {
 		os.Exit(1)
 	}
 
-	var msgs []MessageItem
+	var msgs OpenConversation
 
 	err = json.NewDecoder(res.Body).Decode(&msgs)
 	if err != nil {

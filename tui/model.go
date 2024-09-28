@@ -15,9 +15,10 @@ type model struct {
     messages           []MessageItem   
     websocket          *websocket_service
     textInput          textarea.Model
+    loadedContact      string
 }
 
-func initialModel(profile Profile, contacts []Friend, messages []MessageItem, websocket *websocket_service) model {
+func initialModel(profile Profile, contacts []Friend, messages OpenConversation, websocket *websocket_service) model {
 
 	textInput := textarea.New()
 	textInput.Placeholder = "Type a message..."
@@ -35,7 +36,8 @@ func initialModel(profile Profile, contacts []Friend, messages []MessageItem, we
 	return model{
 		profile:  profile,
 		contacts: contacts,
-		messages: messages,
+		messages: messages.Messages,
+		loadedContact: messages.Username,
 		websocket: websocket,
 		textInput: textInput,
 		currentContact: 0,
@@ -99,7 +101,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					currentContact := m.contacts[m.currentContact]
 					return m, func() tea.Msg {
 						messages := openChannel(currentContact)
-						return OpenMsg{messages}
+						return OpenMsg{messages.Messages, messages.Username}
 					}
 				}
 			        return m, nil
@@ -111,7 +113,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case ChannelMsg:
 	    m.messages = append(m.messages, msg.messages...)
     case OpenMsg:
-	    m.messages = msg.messages
+	    if (m.loadedContact != msg.user) {
+		    m.messages = msg.messages
+	    }
     case cursor.BlinkMsg:
 		var cmd tea.Cmd
 		m.textInput, cmd = m.textInput.Update(msg)
