@@ -2,6 +2,7 @@ package io.github.xpakx.discord_muppet.websocket;
 
 import io.github.xpakx.discord_muppet.conversation.MessageItem;
 import io.github.xpakx.discord_muppet.model.dto.FriendData;
+import io.github.xpakx.discord_muppet.web.dto.ConversationResponse;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ public class WebsocketService {
         simpMessagingTemplate.convertAndSend("/topic/current", msg);
     }
 
-    public void openConversation(List<MessageItem> msg) {
+    public void openConversation(ConversationResponse msg) {
         simpMessagingTemplate.convertAndSend("/topic/open", msg);
     }
 }

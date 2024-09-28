@@ -5,6 +5,7 @@ import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.model.User;
 import io.github.xpakx.discord_muppet.model.dto.FriendData;
 import io.github.xpakx.discord_muppet.web.dto.MessageRequest;
+import io.github.xpakx.discord_muppet.web.dto.ConversationResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,12 +31,15 @@ public class ProfileController {
     }
 
     @GetMapping("/contacts/{username}")
-    public List<MessageItem> openChannel(@PathVariable String username) {
-        return service.openChannel(username);
+    public ConversationResponse openChannel(@PathVariable String username) {
+        return new ConversationResponse(
+                service.openChannel(username),
+                username
+        );
     }
 
     @GetMapping("/current")
-    public List<MessageItem> currentChannel() {
+    public ConversationResponse currentChannel() {
         return service.currentChannel();
     }
 

@@ -4,6 +4,7 @@ import io.github.xpakx.discord_muppet.conversation.ConversationWrapper;
 import io.github.xpakx.discord_muppet.conversation.MessageItem;
 import io.github.xpakx.discord_muppet.conversation.MessageProcessor;
 import io.github.xpakx.discord_muppet.model.dto.FriendData;
+import io.github.xpakx.discord_muppet.web.dto.ConversationResponse;
 import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.springframework.stereotype.Service;
 
@@ -87,7 +88,7 @@ public class ProfileService {
         }
     }
 
-    public List<MessageItem> currentChannel() {
+    public ConversationResponse currentChannel() {
         return conversationWrapper.currentChannel();
     }
 

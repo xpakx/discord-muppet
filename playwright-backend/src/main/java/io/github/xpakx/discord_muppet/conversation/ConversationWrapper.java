@@ -4,6 +4,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import io.github.xpakx.discord_muppet.web.dto.ConversationResponse;
 import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -61,12 +62,17 @@ public class ConversationWrapper {
         Document doc = Jsoup.parse(html);
         messages = processMessages(doc);
         startWatching();
-        websocketService.openConversation(messages);
+        websocketService.openConversation(
+                new ConversationResponse(messages, contact.username())
+        );
         return messages;
     }
 
-    public List<MessageItem> currentChannel() {
-        return messages;
+    public ConversationResponse currentChannel() {
+        return new ConversationResponse(
+                messages,
+                currentUser != null ? currentUser.username() : ""
+        );
     }
 
     public void startWatching() {
