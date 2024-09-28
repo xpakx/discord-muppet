@@ -4,6 +4,7 @@ import io.github.xpakx.discord_muppet.conversation.MessageItem;
 import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.model.User;
 import io.github.xpakx.discord_muppet.model.dto.FriendData;
+import io.github.xpakx.discord_muppet.web.dto.MessageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,8 +40,8 @@ public class ProfileController {
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<?> sendMessage(@RequestBody String message) { // TODO
-        service.sendMessage(message);
+    public ResponseEntity<?> sendMessage(@RequestBody MessageRequest message) { // TODO
+        service.sendMessage(message.message());
         return ResponseEntity.ok(null);
     }
 }
