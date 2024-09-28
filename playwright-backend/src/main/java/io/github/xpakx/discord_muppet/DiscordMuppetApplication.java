@@ -55,9 +55,6 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		profileService.saveUser(status);
 		var contacts = page.getContacts();
 		profileService.saveContacts(contacts);
-		conversationWrapper.openChannel(contacts.getFirst());
-		conversationWrapper.startWatching();
-		var messages = conversationWrapper.getMessages();
 
 		var doc = Jsoup.parse(page.content().get());
 		var notifications = notificationService.getNotifications(doc);
@@ -65,7 +62,6 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 
 		System.out.println(status);
 		System.out.println(contacts);
-		System.out.println(messages);
 		System.out.println(notifications);
 
 		notificationService.startWatching();

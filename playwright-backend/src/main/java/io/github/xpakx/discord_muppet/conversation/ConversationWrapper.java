@@ -23,6 +23,7 @@ public class ConversationWrapper {
     private final String serverUrl;
     private final Page page;
     private String htmlCache = "";
+    private Friend currentUser;
     private boolean watch = false;
     private List<MessageItem> messages = new ArrayList<>();
     Set<String> loadedIds = ConcurrentHashMap.newKeySet();
@@ -39,22 +40,29 @@ public class ConversationWrapper {
         this.websocketService = websocketService;
     }
 
-    public void openChannel(Friend contact) {
+    public boolean openChannel(Friend contact) {
+        if (currentUser != null && currentUser.username().equals(contact.username())) {
+            return false;
+        }
         stopWatching();
         loadedIds.clear();
         usernames.clear();
         page.navigate(serverUrl + contact.channelUrl());
+        currentUser = contact;
+        return true;
     }
 
     public List<MessageItem> openChannelRest(Friend contact) throws InterruptedException {
-        openChannel(contact);
+        if (!openChannel(contact)) {
+            return messages;
+        }
         TimeUnit.SECONDS.sleep(5); // TODO
         var html = page.content();
         Document doc = Jsoup.parse(html);
         messages = processMessages(doc);
         startWatching();
         websocketService.openConversation(messages);
-        return messages; // TODO: this should be deleted
+        return messages;
     }
 
     public List<MessageItem> currentChannel() {
