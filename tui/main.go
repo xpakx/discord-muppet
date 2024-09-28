@@ -168,10 +168,19 @@ func currentChannel() ([]MessageItem) {
 
 func sendMessage(msg string) {
 	// TODO: error messages
+	data := map[string]string{
+		"message": msg,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Printf("error marshalling data: %s\n", err)
+		return
+	}
+
 	res, err := http.Post(
 		"http://localhost:8080/api/v1/messages",
-		"text/plain",
-		bytes.NewBufferString(msg))
+		"application/json",
+		bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
 		return
