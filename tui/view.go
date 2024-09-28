@@ -224,9 +224,6 @@ func draw(m model) (string) {
 		}
 	}
 
-	messageContainer := lipgloss.JoinVertical(lipgloss.Top, renderedMessages...)
-
-
 	friends := []string{ friendHeader("Contacts") }
 
 
@@ -243,7 +240,7 @@ func draw(m model) (string) {
 
 		// input
 		lipgloss.JoinVertical(lipgloss.Top,
-			lipgloss.NewStyle().MaxHeight(19 - 4).Height(19 - 4).Render(messageContainer),
+			lipgloss.NewStyle().MaxHeight(19 - 4).Height(19 - 4).Render(m.viewport.View()),
 			input.
 			Width(width - columnWidth - 5).
 			Render(textInput.View()),

@@ -1,10 +1,11 @@
 package main
 
 import (
+	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/bubbles/cursor"
 )
 
 type model struct {
@@ -16,6 +17,7 @@ type model struct {
     websocket          *websocket_service
     textInput          textarea.Model
     loadedContact      string
+    viewport           viewport.Model
 }
 
 func initialModel(profile Profile, contacts []Friend, messages OpenConversation, websocket *websocket_service) model {
@@ -33,6 +35,10 @@ func initialModel(profile Profile, contacts []Friend, messages OpenConversation,
 	textInput.BlurredStyle.CursorLine = lipgloss.NewStyle()
 	textInput.Prompt = ""
 
+
+	chatWidth := width - columnWidth - 5;
+	newViewport := viewport.New(chatWidth, 15)
+
 	return model{
 		profile:  profile,
 		contacts: contacts,
@@ -42,7 +48,23 @@ func initialModel(profile Profile, contacts []Friend, messages OpenConversation,
 		textInput: textInput,
 		currentContact: 0,
 		contactsActive: false,
+		viewport: newViewport,
 	}
+}
+
+func (m *model) UpdateViewport() {
+	chatWidth := width - columnWidth - 5;
+	var renderedMessages []string
+	for _, msg := range m.messages {
+		if msg.Type == "Message" {
+			renderedMessages = append(
+				renderedMessages, 
+				message(msg.Message.Username, msg.Message.Timestamp, msg.Message.Content, msg.Message.Username == m.profile.VisibleName, chatWidth))
+		}
+	}
+
+	messageContainer := lipgloss.JoinVertical(lipgloss.Top, renderedMessages...)
+	m.viewport.SetContent(messageContainer)
 }
 
 func (m model) Init() tea.Cmd {
@@ -112,14 +134,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	    m.contacts = msg.friends
     case ChannelMsg:
 	    m.messages = append(m.messages, msg.messages...)
+	    m.UpdateViewport()
+	    m.viewport.GotoBottom() // TODO: detect if scrolled down
     case OpenMsg:
 	    if (m.loadedContact != msg.user) {
 		    m.messages = msg.messages
+		    m.UpdateViewport()
+		    m.viewport.GotoBottom()
 	    }
     case cursor.BlinkMsg:
 		var cmd tea.Cmd
 		m.textInput, cmd = m.textInput.Update(msg)
 		return m, cmd
+    case tea.WindowSizeMsg:
+	    // TODO
+	    m.UpdateViewport()
+	    m.viewport.GotoBottom() // TODO: only first time
     }
 
     return m, nil
