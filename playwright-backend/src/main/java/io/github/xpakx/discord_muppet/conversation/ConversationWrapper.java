@@ -9,6 +9,8 @@ import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class ConversationWrapper {
     Set<String> loadedIds = ConcurrentHashMap.newKeySet();
     Map<String, String> usernames = new ConcurrentHashMap<>();
     private final WebsocketService websocketService;
+    Logger logger = LoggerFactory.getLogger(ConversationWrapper.class);
 
     public ConversationWrapper(
             PageWrapper pageWrapper,
@@ -43,9 +46,11 @@ public class ConversationWrapper {
 
     public boolean openChannel(Friend contact) {
         if (currentUser != null && currentUser.username().equals(contact.username())) {
+            logger.info("Tried to open already opened channel");
             return false;
         }
         stopWatching();
+        logger.info("Loading channel for contact {}", contact.username());
         loadedIds.clear();
         usernames.clear();
         page.navigate(serverUrl + contact.channelUrl());
