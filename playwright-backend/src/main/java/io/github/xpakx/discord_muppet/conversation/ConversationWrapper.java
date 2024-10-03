@@ -4,6 +4,8 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import io.github.xpakx.discord_muppet.model.Friend;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
+import io.github.xpakx.discord_muppet.screenshot.DebugScreenshot;
+import io.github.xpakx.discord_muppet.screenshot.WrapperType;
 import io.github.xpakx.discord_muppet.web.dto.ConversationResponse;
 import io.github.xpakx.discord_muppet.websocket.WebsocketService;
 import org.jsoup.Jsoup;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -58,6 +61,7 @@ public class ConversationWrapper {
         return true;
     }
 
+    @DebugScreenshot(prefix = "openChannel", wrapper = WrapperType.Conversation)
     public List<MessageItem> openChannelRest(Friend contact) throws InterruptedException {
         if (!openChannel(contact)) {
             return messages;
@@ -199,5 +203,12 @@ public class ConversationWrapper {
         input.focus();
         input.pressSequentially(message, new Locator.PressSequentiallyOptions().setDelay(100));
         input.press("Enter");
+    }
+
+    public void makeScreenshot(String name) {
+        Path root  = Path.of("debug");
+        page.screenshot(
+                new Page.ScreenshotOptions().setPath(root.resolve(name))
+        );
     }
 }

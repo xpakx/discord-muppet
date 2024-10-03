@@ -62,6 +62,7 @@ public class PageWrapper {
         }
     }
 
+    @DebugScreenshot(prefix = "newPage")
     public Page newPage() {
         return context.newPage();
     }
@@ -71,7 +72,7 @@ public class PageWrapper {
         page.navigate(serverUrl + "/app");
     }
 
-    @DebugScreenshot()
+    @DebugScreenshot(prefix = "login")
     public void fillLoginForm(String email, String password) {
         logger.info(
                 "Filling login form with email: {} and password {}",

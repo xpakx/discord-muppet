@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DebugScreenshot {
     String prefix() default "screenshot";
+    WrapperType wrapper() default WrapperType.Main;
 }

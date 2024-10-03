@@ -32,9 +32,6 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 	@Autowired
 	NotificationService notificationService;
 
-	@Autowired
-	ConversationWrapper conversationWrapper;
-
 	public static void main(String[] args) {
 		SpringApplication.run(DiscordMuppetApplication.class, args);
 	}
