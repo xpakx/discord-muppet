@@ -7,15 +7,27 @@ import java.util.List;
 
 @Service
 public class CookieService {
+    private final CookieRepository cookieRepository;
+
+    public CookieService(CookieRepository cookieRepository) {
+        this.cookieRepository = cookieRepository;
+    }
 
     public void saveCookies(List<Cookie> currentCookies) {
-        // TODO
+        cookieRepository.saveAll(
+                currentCookies
+                        .stream()
+                        .map(CookieEntity::from)
+                        .toList()
+        );
         System.out.println("Cookies saved");
     }
 
     public List<Cookie> loadCookies() {
-        // TODO
         System.out.println("Cookies loaded");
-        return null;
+        return cookieRepository.findAll()
+                        .stream()
+                        .map(CookieEntity::toCookie)
+                        .toList();
     }
 }
