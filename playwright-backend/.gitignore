@@ -35,3 +35,4 @@ debug/
 test/
 
 **/application-dev.properties
+data.db
