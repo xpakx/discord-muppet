@@ -214,7 +214,7 @@ public class PageWrapper {
     }
 
     public boolean isLoggedIn() {
-        var body = page.locator("div[id='app-mount']");
+        var body = page.locator("ul[data-list-id='guildsnav']");
         return body.count() != 0;
     }
 }
