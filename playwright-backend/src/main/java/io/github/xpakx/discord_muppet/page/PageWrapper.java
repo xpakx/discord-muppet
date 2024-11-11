@@ -212,4 +212,9 @@ public class PageWrapper {
     public boolean hasCookies() {
         return cookiesLoaded;
     }
+
+    public boolean isLoggedIn() {
+        var body = page.locator("div[id='app-mount']");
+        return body.count() != 0;
+    }
 }
