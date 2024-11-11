@@ -1,5 +1,6 @@
 package io.github.xpakx.discord_muppet;
 
+import com.microsoft.playwright.PlaywrightException;
 import io.github.xpakx.discord_muppet.conversation.ConversationWrapper;
 import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.notification.NotificationService;
@@ -43,7 +44,14 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... arg0) throws Exception {
-		page.goToLogin();
+		try {
+			page.goToLogin();
+		} catch (PlaywrightException e) {
+			logger.error("Couldn't navigate to app");
+			System.exit(0);
+			return;
+		}
+
 		if (!page.hasCookies()) {
 			page.fillLoginForm(email, password);
 			TimeUnit.SECONDS.sleep(5);
