@@ -229,7 +229,7 @@ public class PageWrapper {
         int closedModals = 0;
         for (var button : modalCloseButtons.all()) {
             String hiddenAttr = button.getAttribute("aria-hidden");
-            boolean hidden = hiddenAttr == null || hiddenAttr.equals("true");
+            boolean hidden = hiddenAttr != null && hiddenAttr.equals("true");
             if (hidden) {
                 continue;
             }
