@@ -68,6 +68,7 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		}
 
 		page.makeScreenshot();
+		page.closeModals();
 
 		var status = page.getStatus();
 		profileService.saveUser(status);

@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class PageWrapper {
@@ -216,5 +217,26 @@ public class PageWrapper {
     public boolean isLoggedIn() {
         var body = page.locator("ul[data-list-id='guildsnav']");
         return body.count() != 0;
+    }
+
+    public void closeModals() throws Exception {
+        var modalCloseButtons = page
+                .locator("div[class^=closeButton]");
+        logger.info("Modals found: {}", modalCloseButtons.count());
+        if (modalCloseButtons.count() == 0) {
+            return;
+        }
+        int closedModals = 0;
+        for (var button : modalCloseButtons.all()) {
+            String hiddenAttr = button.getAttribute("aria-hidden");
+            boolean hidden = hiddenAttr == null || hiddenAttr.equals("true");
+            if (hidden) {
+                continue;
+            }
+            button.click();
+            closedModals++;
+            TimeUnit.MILLISECONDS.sleep(300);
+        }
+        logger.info("Modals closed: {}", closedModals);
     }
 }
