@@ -5,6 +5,8 @@ import io.github.xpakx.discord_muppet.model.ProfileService;
 import io.github.xpakx.discord_muppet.notification.NotificationService;
 import io.github.xpakx.discord_muppet.page.PageWrapper;
 import org.jsoup.Jsoup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -12,6 +14,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
@@ -32,6 +35,8 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 	@Autowired
 	NotificationService notificationService;
 
+	Logger logger = LoggerFactory.getLogger(DiscordMuppetApplication.class);
+
 	public static void main(String[] args) {
 		SpringApplication.run(DiscordMuppetApplication.class, args);
 	}
@@ -42,10 +47,18 @@ public class DiscordMuppetApplication implements CommandLineRunner {
 		if (!page.hasCookies()) {
 			page.fillLoginForm(email, password);
 			TimeUnit.SECONDS.sleep(5);
-			// TODO: test login
 			page.saveCookies();
 		}
 		System.out.println(page.url());
+
+		if (!page.isLoggedIn()) {
+			logger.error("Not possible to log in with provided credentials");
+			page.makeScreenshot(
+					"login_err_" + Instant.now().toString() + ".png"
+			);
+			return;
+		}
+
 		page.makeScreenshot();
 
 		var status = page.getStatus();
