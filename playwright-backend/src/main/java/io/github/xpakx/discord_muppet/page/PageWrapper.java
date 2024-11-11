@@ -48,7 +48,7 @@ public class PageWrapper {
                            // .setHeadless(false)
             );
             this.context = browser.newContext();
-            if (currentCookies != null) {
+            if (currentCookies != null && !currentCookies.isEmpty()) {
                 context.addCookies(currentCookies);
                 cookiesLoaded = true;
             }
